@@ -11,7 +11,7 @@ from transformers import BertTokenizer, BertModel
 
 if torch.cuda.is_available():
     def from_numpy(ndarray):
-        return torch.from_numpy(ndarray).pin_memory().cuda(async=True)
+        return torch.from_numpy(ndarray).pin_memory().cuda()
 else:
     from torch import from_numpy
 
@@ -93,6 +93,9 @@ class TableParser(nn.Module):
 
             self._q_bilstm_2 = Encoder_rnn(self.args, self._bilstm_dim * 4, self._bilstm_dim)
             self._c_bilstm_2 = Encoder_rnn(self.args, self._bilstm_dim * 4, self._bilstm_dim)
+            self._bert_feature_dim = self._bert_model.pooler.dense.in_features
+            self.indicator_embedding = nn.Embedding(num_embeddings=2, embedding_dim=self._bert_feature_dim,
+                                                    padding_idx=0)
         else:
 
             self._q_charlstm = Encoder_rnn(self.args, self._cdim, self._bilstm_dim)
@@ -263,6 +266,15 @@ class TableParser(nn.Module):
         bert_word_features = features.masked_select(all_word_end_mask.to(torch.bool).unsqueeze(-1)).reshape(len(instances), word_seq_max_len, features.shape[-1])
         bert_col_features = features.masked_select(all_col_end_mask.to(torch.bool).unsqueeze(-1)).reshape(len(instances), col_seq_max_len, features.shape[-1])
 
+        mask = np.zeros((len(instances), word_seq_max_len))
+        nl_indices = [instance['nl_alignment_span'] for instance in instances]
+        for i, row in enumerate(nl_indices):
+            for j in row:
+                mask[i, j] = 1
+        mask_tensor = from_numpy(mask).long()
+        indicator_broadcast = self.indicator_embedding(mask_tensor)
+
+        bert_word_features = bert_word_features.add(indicator_broadcast)
 
         # BERT encoding for question and table
         wvecs = self._bert_w_project(bert_word_features)
@@ -448,7 +460,7 @@ class TableParser(nn.Module):
                         label.append(-1)
                     loss.append(0.2 * criterion(F.log_softmax(potential, dim=1), torch.tensor(label, device=self.device)))
 
-                att = attention_matrix(instances[i])
+                #att = attention_matrix(instances[i])
                 decoder_input = self._decoder_lookup(torch.tensor([0], device=self.device))
                 hidden = None
 
@@ -460,20 +472,20 @@ class TableParser(nn.Module):
 
 
                     val = wvecs[i].unsqueeze(0)
-                    if self.args.gold_attn:
-                        w_context = self.decode_w_attn(hvec, val, val, batch['word_mask'].to(self.device)[i], gold_attn=att[ystep])
-                    else:
-                        w_context = self.decode_w_attn(hvec, val, val, batch['word_mask'].to(self.device)[i])
+                    # if self.args.gold_attn:
+                    #     w_context = self.decode_w_attn(hvec, val, val, batch['word_mask'].to(self.device)[i], gold_attn=att[ystep])
+                    # else:
+                    w_context = self.decode_w_attn(hvec, val, val, batch['word_mask'].to(self.device)[i])
                     c_context, c_score = self.decode_c_attn(hvec, cvecs[i].unsqueeze(0), batch['col_mask'].to(self.device)[i].unsqueeze(0))
 
 
                     # Decoder supervised attn
-                    if self.args.dec_loss and not self.args.gold_attn:
-                        w_score = self.decode_w_attn.attn.squeeze(0).squeeze(1)[0]
-                        #ll = mul_loss(w_score, att[ystep + 1])
-                        ll = l2_loss(w_score, att[ystep])
-                        #ll = ce_loss(w_score, att[ystep])
-                        loss.extend(ll)
+                    # if self.args.dec_loss and not self.args.gold_attn:
+                    #     w_score = self.decode_w_attn.attn.squeeze(0).squeeze(1)[0]
+                    #     #ll = mul_loss(w_score, att[ystep + 1])
+                    #     ll = l2_loss(w_score, att[ystep])
+                    #     #ll = ce_loss(w_score, att[ystep])
+                    #     loss.extend(ll)
 
                     hvec = torch.cat((hvec, w_context, c_context), -1)
 
@@ -569,13 +581,13 @@ class TableParser(nn.Module):
 
 
                     val = wvecs[i].unsqueeze(0)
-                    if self.args.gold_attn:
-                        if ii - 1 < att.shape[0]:
-                            w_context = self.decode_w_attn(hvec, val, val, batch['word_mask'].to(self.device)[i], gold_attn=att[ii - 1])
-                        else:
-                            w_context = self.decode_w_attn(hvec, val, val, batch['word_mask'].to(self.device)[i], gold_attn=att[-1])
-                    else:
-                        w_context = self.decode_w_attn(hvec, val, val, batch['word_mask'].to(self.device)[i])
+                    # if self.args.gold_attn:
+                    #     if ii - 1 < att.shape[0]:
+                    #         w_context = self.decode_w_attn(hvec, val, val, batch['word_mask'].to(self.device)[i], gold_attn=att[ii - 1])
+                    #     else:
+                    #         w_context = self.decode_w_attn(hvec, val, val, batch['word_mask'].to(self.device)[i], gold_attn=att[-1])
+                    # else:
+                    w_context = self.decode_w_attn(hvec, val, val, batch['word_mask'].to(self.device)[i])
                     c_context, c_score = self.decode_c_attn(hvec, cvecs[i].unsqueeze(0), batch['col_mask'].to(self.device)[i].unsqueeze(0))
                     w_score = self.decode_w_attn.attn.squeeze(0).squeeze(1)[0]
 

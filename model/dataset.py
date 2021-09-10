@@ -7,7 +7,7 @@ import numpy as np
 from utils import parse_number
 import torch
 from collections import Counter
-
+import copy
 from torch.utils.data import Dataset
 
 
@@ -81,6 +81,32 @@ def load_dataset(filename):
 
 
     return data
+
+
+def load_alignment_dataset(filename):
+    with open(filename) as f:
+        data = json.load(f)
+    alignment_s2s_data = []
+    for instance in data:
+
+        has_number = False
+        numbers = []
+        for x in instance["nl"]:
+            numbers.append(parse_number(x))
+            if numbers[-1] is not None:
+                has_number = True
+        instance["numbers"] = numbers
+        instance["has_number"] = has_number
+        for alignment_set in instance['align']:
+            new_instance = copy.deepcopy(instance)
+            nl_set = alignment_set[0]
+            sql_set = alignment_set[1]
+            new_instance['nl_alignment_span'] = nl_set
+            new_instance['sql'] = [instance['sql'][i] for i in sql_set]
+            new_instance['old_sql'] = instance['sql']
+            alignment_s2s_data.append(new_instance)
+
+    return alignment_s2s_data
 
 
 def load_table(filename):

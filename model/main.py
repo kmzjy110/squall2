@@ -12,9 +12,10 @@ torch.manual_seed(0)
 np.random.seed(0)
 
 from torch.nn.utils import clip_grad_norm_
+from torch.nn.utils import clip_grad_norm_
 from model import TableParser
 
-from dataset import load_dataset, em_process
+from dataset import load_alignment_dataset, em_process
 import dataset
 from vocab import build_vocab
 
@@ -95,7 +96,7 @@ if __name__ == "__main__":
     parser.add_argument('--gold-decode', action='store_true', default=False)
     parser.add_argument('--gold-attn', action='store_true', default=False)
     parser.add_argument('--sample', type=int, default=50000)
-    parser.add_argument('--bert', action='store_true', default=False)
+    parser.add_argument('--bert', action='store_true', default=True)
 
     args = parser.parse_args()
     args.cuda = not args.no_cuda and torch.cuda.is_available()
@@ -112,7 +113,7 @@ if __name__ == "__main__":
     logger.addHandler(logfile)
 
     ## Add exact match feature (em_process)
-    train_exs = em_process(load_dataset(args.train_file))
+    train_exs = em_process(load_alignment_dataset(args.train_file))
     if args.sample != 0:
         train_exs = train_exs[:args.sample]
 
@@ -120,7 +121,7 @@ if __name__ == "__main__":
         dev_exs = train_exs[-500:]
         train_exs = train_exs[:-500]
     else:
-        dev_exs = em_process(load_dataset(args.dev_file))
+        dev_exs = em_process(load_alignment_dataset(args.dev_file))
 
 
     vocab = load_words(train_exs, cutoff=5)
@@ -142,7 +143,7 @@ if __name__ == "__main__":
     )
 
     if args.test:
-        test_exs = em_process(load_dataset(args.test_file))
+        test_exs = em_process(load_alignment_dataset(args.test_file))
         test_dataset = dataset.WikiTableDataset(test_exs, vocab)
         test_sampler = torch.utils.data.sampler.SequentialSampler(test_dataset)
         test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=1,
