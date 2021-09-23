@@ -44,7 +44,7 @@ def evaluate(data_loader, model, evaluator, gold_decode=False, beamsearch=True):
     wrongs = []
     rights = []
     beamsearch_result_strings = []
-    for idx, batch in enumerate(tqdm(data_loader)):
+    for index, batch in enumerate(tqdm(data_loader)):
         model.eval()
         prediction, _log_probs = model(batch, isTrain=False, gold_decode=gold_decode, beamsearch=beamsearch)
         if not beamsearch:
@@ -59,6 +59,7 @@ def evaluate(data_loader, model, evaluator, gold_decode=False, beamsearch=True):
                         lf_accu += 1
                         correct_pred = True
                         break
+                beamsearch_result_strings.append("Index:"+str(index))
                 if correct_pred:
                     beamsearch_result_strings.append("one of top k was correct")
 
@@ -67,14 +68,24 @@ def evaluate(data_loader, model, evaluator, gold_decode=False, beamsearch=True):
                 beamsearch_result_strings.append("Actual:")
                 beamsearch_result_strings.append(d['result'][0]['tgt'])
                 beamsearch_result_strings.append("Predicted:")
-                for sql in d['result'][0]['sql']:
+                for sql_index, sql in enumerate(d['result'][0]['sql']):
                     beamsearch_result_strings.append(sql)
+                    beamsearch_result_strings.append(d['result'][0]['sql_type'][sql_index])
             else:
                 if d['result'][0]['sql'] == d['result'][0]['tgt']:
                     lf_accu += 1
+                    rights.append("Index:"+str(index))
                     rights.append(d['result'][0]['sql'])
+                    rights.append(d['result'][0]['sql_type'])
                 else:
-                    wrongs.append((d['result'][0]['sql'], d['result'][0]['tgt']))
+                    wrongs.append("Index:"+str(index))
+                    wrongs.append("Predicted:")
+                    wrongs.append(d['result'][0]['sql'])
+                    wrongs.append("Predicted types:")
+                    wrongs.append(d['result'][0]['sql_type'])
+                    wrongs.append("Actual:")
+                    wrongs.append(d['result'][0]['tgt'])
+
         # if ex_acc == 1:
         #     prediction[0]['correct'] = 1
         # else:
@@ -84,11 +95,7 @@ def evaluate(data_loader, model, evaluator, gold_decode=False, beamsearch=True):
     if not beamsearch:
         with open('wrongs.txt', 'w') as wrongs_f:
             for wrong in wrongs:
-                wrongs_f.write("Predicted:\n")
-                wrongs_f.write(wrong[0])
-                wrongs_f.write('\n')
-                wrongs_f.write('Actual:\n')
-                wrongs_f.write(wrong[1])
+                wrongs_f.write(wrong)
                 wrongs_f.write('\n')
         with open('rights.txt', 'w') as wrongs_f:
             for right in rights:
@@ -193,7 +200,7 @@ if __name__ == "__main__":
     if args.test:
 
         test_exs = em_process(load_alignment_dataset(args.dev_file))
-        #test_exs = test_exs[:10]
+        test_exs = test_exs[:50]
         test_dataset = dataset.WikiTableDataset(test_exs, vocab)
         test_sampler = torch.utils.data.sampler.SequentialSampler(test_dataset)
         test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=1,
@@ -206,8 +213,8 @@ if __name__ == "__main__":
         else:
             model = torch.load(args.load_model)
         model.to(device)
-        f1, pred = evaluate(test_loader, model, evaluator, args.gold_decode)
-
+        f1, pred = evaluate(test_loader, model, evaluator, args.gold_decode, beamsearch=True)
+        f1, pred = evaluate(test_loader, model, evaluator, args.gold_decode, beamsearch=False)
         with open(args.pred_file, "w") as f:
             json.dump(pred, f, indent=2)
 
@@ -256,6 +263,7 @@ if __name__ == "__main__":
                                                collate_fn=dataset.batchify, pin_memory=args.cuda)
         model.train()
         model.epoch = epoch
+        testing_idx = 0
 
         for idx, batch in enumerate(tqdm(train_loader)):
             loss = model(batch)
@@ -273,7 +281,12 @@ if __name__ == "__main__":
             checkpoint = int(len(train_exs) / (args.batch_size * 2) - 1)
 
             if idx % checkpoint == 0 and idx != 0:
-                f1, pred = evaluate(dev_loader, model, evaluator, args.gold_decode)
+                testing_idx+=1
+                if testing_idx %2 ==0:
+                    beamsearch=True
+                else:
+                    beamsearch=False
+                f1, pred = evaluate(dev_loader, model, evaluator, args.gold_decode, beamsearch=beamsearch)
                 model.train()
                 print_loss_avg = print_loss_total / checkpoint
                 logger.info('number of steps: %d, loss: %.5f time: %.5f' % (idx, print_loss_avg, time.time()- start))

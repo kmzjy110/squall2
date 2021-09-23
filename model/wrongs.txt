@@ -1,0 +1,133 @@
+Index:5
+Predicted:
+c1_number
+Predicted types:
+Column Keyword
+Actual:
+c5_number
+Index:6
+Predicted:
+c1_number
+Predicted types:
+Column Keyword
+Actual:
+c5_number
+Index:7
+Predicted:
+count ( )
+Predicted types:
+Keyword Keyword Keyword Keyword
+Actual:
+count ( distinct )
+Index:8
+Predicted:
+c1_number
+Predicted types:
+Column Keyword
+Actual:
+c1
+Index:12
+Predicted:
+id = ( id 1 - )
+Predicted types:
+Keyword Keyword Keyword Keyword Keyword Keyword Keyword Keyword
+Actual:
+id = ( id order by id desc limit 1 ) + 1
+Index:13
+Predicted:
+c3
+Predicted types:
+Column Keyword
+Actual:
+c4
+Index:16
+Predicted:
+order by desc limit 1
+Predicted types:
+Keyword Keyword Keyword Keyword Keyword Keyword
+Actual:
+order by id desc limit 1
+Index:18
+Predicted:
+order by desc limit 1
+Predicted types:
+Keyword Keyword Keyword Keyword Keyword Keyword
+Actual:
+id = 1
+Index:19
+Predicted:
+count ( )
+Predicted types:
+Keyword Keyword Keyword Keyword
+Actual:
+count ( distinct )
+Index:20
+Predicted:
+c3
+Predicted types:
+Column Keyword
+Actual:
+c1
+Index:22
+Predicted:
+>
+Predicted types:
+Keyword Keyword
+Actual:
+!=
+Index:23
+Predicted:
+>
+Predicted types:
+Keyword Keyword
+Actual:
+!=
+Index:28
+Predicted:
+>
+Predicted types:
+Keyword Keyword
+Actual:
+and
+Index:31
+Predicted:
+c3
+Predicted types:
+Column Keyword
+Actual:
+c5_number
+Index:32
+Predicted:
+>
+Predicted types:
+Keyword Keyword
+Actual:
+id ( = id ) + 1
+Index:36
+Predicted:
+c2_maximum_year
+Predicted types:
+Column Keyword
+Actual:
+c2_minimum_year
+Index:38
+Predicted:
+count ( )
+Predicted types:
+Keyword Keyword Keyword Keyword
+Actual:
+count ( * )
+Index:39
+Predicted:
+count ( )
+Predicted types:
+Keyword Keyword Keyword Keyword
+Actual:
+sum ( )
+Index:48
+Predicted:
+id = ( id 1 - )
+Predicted types:
+Keyword Keyword Keyword Keyword Keyword Keyword Keyword Keyword
+Actual:
+id = ( id ) + 1

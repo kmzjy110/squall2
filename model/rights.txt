@@ -1,0 +1,93 @@
+Index:0
+1
+Literal.Number Keyword
+Index:1
+c1_number
+Column Keyword
+Index:2
+2
+Literal.Number Keyword
+Index:3
+c1_number
+Column Keyword
+Index:4
+select ( ) - ( )
+Keyword Keyword Keyword Keyword Keyword Keyword Keyword
+Index:9
+c2
+Column Keyword
+Index:10
+'atacama'
+Literal.String Keyword
+Index:11
+c2
+Column Keyword
+Index:14
+'jaime quintana'
+Literal.String Keyword
+Index:15
+c2
+Column Keyword
+Index:17
+c3
+Column Keyword
+Index:21
+c3
+Column Keyword
+Index:24
+2005
+Literal.Number Keyword
+Index:25
+2009
+Literal.Number Keyword
+Index:26
+c5_number
+Column Keyword
+Index:27
+c5_number
+Column Keyword
+Index:29
+'antonio horvath kiss'
+Literal.String Keyword
+Index:30
+c5_number
+Column Keyword
+Index:33
+c1
+Column Keyword
+Index:34
+c1
+Column Keyword
+Index:35
+'late-may 1965 tornado outbreak'
+Literal.String Keyword
+Index:37
+1965
+Literal.Number Keyword
+Index:40
+c4_number
+Column Keyword
+Index:41
+c2_minimum_year
+Column Keyword
+Index:42
+1960
+Literal.Number Keyword
+Index:43
+c4
+Column Keyword
+Index:44
+'shoulder injury sustained from crash'
+Literal.String Keyword
+Index:45
+c3
+Column Keyword
+Index:46
+c3
+Column Keyword
+Index:47
+'matteo bono'
+Literal.String Keyword
+Index:49
+'daniel martin'
+Literal.String Keyword

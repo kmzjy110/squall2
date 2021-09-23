@@ -1,0 +1,750 @@
+Index:0
+one of top k was correct
+Actual:
+1
+Predicted:
+1
+Literal.Number Keyword
+1 = )
+Literal.Number Keyword Keyword Keyword
+1 = ) by c1_number
+Literal.Number Keyword Keyword Keyword Column Keyword
+1 = ) by c1_number 1
+Literal.Number Keyword Keyword Keyword Column Keyword Keyword
+1 = ) by c1_number 1 order by c1_number limit
+Literal.Number Keyword Keyword Keyword Column Keyword Keyword Keyword Column Keyword Keyword
+Index:1
+one of top k was correct
+Actual:
+c1_number
+Predicted:
+c1_number
+Column Keyword
+c1_number order by c1_number
+Column Keyword Keyword Column Keyword
+c1_number order by c1_number order by c1_number
+Column Keyword Keyword Column Keyword Keyword Column Keyword
+c1_number order by c1_number order by c1_number order by c1_number limit
+Column Keyword Keyword Column Keyword Keyword Column Keyword Keyword Column Keyword Keyword
+c1_number order by c1_number order by c1_number order by c1_number limit 1
+Column Keyword Keyword Column Keyword Keyword Column Keyword Keyword Column Keyword Keyword Keyword
+Index:2
+one of top k was correct
+Actual:
+2
+Predicted:
+2
+Literal.Number Keyword
+2 = )
+Literal.Number Keyword Keyword Keyword
+2 = ) by c1_number
+Literal.Number Keyword Keyword Keyword Column Keyword
+2 = ) by c1_number 1
+Literal.Number Keyword Keyword Keyword Column Keyword Keyword
+2 = ) by c1_number 1 order by c1_number limit
+Literal.Number Keyword Keyword Keyword Column Keyword Keyword Keyword Column Keyword Keyword
+Index:3
+one of top k was correct
+Actual:
+c1_number
+Predicted:
+c1_number
+Column Keyword
+c1_number order by c1_number
+Column Keyword Keyword Column Keyword
+c1_number order by c1_number order by c1_number
+Column Keyword Keyword Column Keyword Keyword Column Keyword
+c1_number order by c1_number order by c1_number order by c1_number limit
+Column Keyword Keyword Column Keyword Keyword Column Keyword Keyword Column Keyword Keyword
+c1_number order by c1_number order by c1_number order by c1_number limit 1
+Column Keyword Keyword Column Keyword Keyword Column Keyword Keyword Column Keyword Keyword Keyword
+Index:4
+none of top k were correct
+Actual:
+select ( ) - ( )
+Predicted:
+select (
+Keyword Keyword Keyword
+select ( order limit
+Keyword Keyword Keyword Keyword Keyword
+select ( order limit order by c1_number
+Keyword Keyword Keyword Keyword Keyword Keyword Column Keyword
+select ( order limit order by c1_number )
+Keyword Keyword Keyword Keyword Keyword Keyword Column Keyword Keyword
+select ( order limit order by c1_number ) by count ( )
+Keyword Keyword Keyword Keyword Keyword Keyword Column Keyword Keyword Keyword Keyword Keyword Keyword
+Index:5
+none of top k were correct
+Actual:
+c5_number
+Predicted:
+c1_number
+Column Keyword
+c1_number order by c1_number
+Column Keyword Keyword Column Keyword
+c1_number order by c1_number order by c1_number
+Column Keyword Keyword Column Keyword Keyword Column Keyword
+c1_number order by c1_number order by c1_number )
+Column Keyword Keyword Column Keyword Keyword Column Keyword Keyword
+c1_number order by c1_number order by c1_number ) by c1_number
+Column Keyword Keyword Column Keyword Keyword Column Keyword Keyword Column Keyword
+Index:6
+none of top k were correct
+Actual:
+c5_number
+Predicted:
+c1_number
+Column Keyword
+c1_number order by c1_number
+Column Keyword Keyword Column Keyword
+c1_number order by c1_number order by c1_number
+Column Keyword Keyword Column Keyword Keyword Column Keyword
+c1_number order by c1_number order by c1_number )
+Column Keyword Keyword Column Keyword Keyword Column Keyword Keyword
+c1_number order by c1_number order by c1_number ) by c1_number
+Column Keyword Keyword Column Keyword Keyword Column Keyword Keyword Column Keyword
+Index:7
+none of top k were correct
+Actual:
+count ( distinct )
+Predicted:
+count (
+Keyword Keyword Keyword
+count ( ( )
+Keyword Keyword Keyword Keyword Keyword
+count ( ( ) order by
+Keyword Keyword Keyword Keyword Keyword Keyword Keyword
+count ( ( ) order by order by
+Keyword Keyword Keyword Keyword Keyword Keyword Keyword Keyword Keyword
+count ( ( ) order by order by 1
+Keyword Keyword Keyword Keyword Keyword Keyword Keyword Keyword Keyword Keyword
+Index:8
+none of top k were correct
+Actual:
+c1
+Predicted:
+'carlos bianchi chelech'
+Literal.String Keyword
+'carlos bianchi chelech' 1
+Literal.String Keyword Keyword
+'carlos bianchi chelech' 1 )
+Literal.String Keyword Keyword Keyword
+'carlos bianchi chelech' 1 ) by c1_number
+Literal.String Keyword Keyword Keyword Column Keyword
+'carlos bianchi chelech' 1 ) by c1_number 1
+Literal.String Keyword Keyword Keyword Column Keyword Keyword
+Index:9
+one of top k was correct
+Actual:
+c2
+Predicted:
+c2
+Column Keyword
+c2 order by c2
+Column Keyword Keyword Column Keyword
+c2 order by c2 )
+Column Keyword Keyword Column Keyword Keyword
+c2 order by c2 ) c2
+Column Keyword Keyword Column Keyword Column Keyword
+c2 order by c2 ) c2 order by c2 limit 1
+Column Keyword Keyword Column Keyword Column Keyword Keyword Column Keyword Keyword Keyword
+Index:10
+one of top k was correct
+Actual:
+'atacama'
+Predicted:
+'atacama'
+Literal.String Keyword
+'atacama' order
+Literal.String Keyword Keyword
+'atacama' order by c1_number
+Literal.String Keyword Keyword Column Keyword
+'atacama' order by c1_number order by c1_number
+Literal.String Keyword Keyword Column Keyword Keyword Column Keyword
+'atacama' order by c1_number order by c1_number 1
+Literal.String Keyword Keyword Column Keyword Keyword Column Keyword Keyword
+Index:11
+one of top k was correct
+Actual:
+c2
+Predicted:
+c2
+Column Keyword
+c2 order by c2
+Column Keyword Keyword Column Keyword
+c2 order by c2 )
+Column Keyword Keyword Column Keyword Keyword
+c2 order by c2 ) c2
+Column Keyword Keyword Column Keyword Column Keyword
+c2 order by c2 ) c2 order by c2 limit 1
+Column Keyword Keyword Column Keyword Column Keyword Keyword Column Keyword Keyword Keyword
+Index:12
+none of top k were correct
+Actual:
+id = ( id order by id desc limit 1 ) + 1
+Predicted:
+id limit
+Keyword Keyword Keyword
+id limit order by
+Keyword Keyword Keyword Keyword Keyword
+id limit order by order by
+Keyword Keyword Keyword Keyword Keyword Keyword Keyword
+id limit order by order by order by c1_number
+Keyword Keyword Keyword Keyword Keyword Keyword Keyword Keyword Column Keyword
+id limit order by order by order by c1_number desc limit
+Keyword Keyword Keyword Keyword Keyword Keyword Keyword Keyword Column Keyword Keyword Keyword
+Index:13
+none of top k were correct
+Actual:
+c4
+Predicted:
+'prsd'
+Literal.String Keyword
+'prsd' order by c1_number
+Literal.String Keyword Keyword Column Keyword
+'prsd' order by c1_number order by c1_number
+Literal.String Keyword Keyword Column Keyword Keyword Column Keyword
+'prsd' order by c1_number order by c1_number )
+Literal.String Keyword Keyword Column Keyword Keyword Column Keyword Keyword
+'prsd' order by c1_number order by c1_number ) by c1_number
+Literal.String Keyword Keyword Column Keyword Keyword Column Keyword Keyword Column Keyword
+Index:14
+one of top k was correct
+Actual:
+'jaime quintana'
+Predicted:
+'jaime quintana'
+Literal.String Keyword
+'jaime quintana' order by c1_number
+Literal.String Keyword Keyword Column Keyword
+'jaime quintana' order by c1_number order by c1_number
+Literal.String Keyword Keyword Column Keyword Keyword Column Keyword
+'jaime quintana' order by c1_number order by c1_number limit
+Literal.String Keyword Keyword Column Keyword Keyword Column Keyword Keyword
+'jaime quintana' order by c1_number order by c1_number limit order by c1_number limit 1
+Literal.String Keyword Keyword Column Keyword Keyword Column Keyword Keyword Keyword Column Keyword Keyword Keyword
+Index:15
+one of top k was correct
+Actual:
+c2
+Predicted:
+c2
+Column Keyword
+c2 c2
+Column Column Keyword
+c2 c2 by c2
+Column Column Keyword Column Keyword
+c2 c2 by c2 count ( )
+Column Column Keyword Column Keyword Keyword Keyword Keyword
+c2 c2 by c2 count ( ) c2
+Column Column Keyword Column Keyword Keyword Keyword Column Keyword
+Index:16
+none of top k were correct
+Actual:
+order by id desc limit 1
+Predicted:
+order by 1
+Keyword Keyword Keyword Keyword
+order by 1 )
+Keyword Keyword Keyword Keyword Keyword
+order by 1 ) ( ) order by order by desc
+Keyword Keyword Keyword Keyword Keyword Keyword Keyword Keyword Keyword Keyword Keyword Keyword
+order by 1 ) ( ) order by order by desc 1
+Keyword Keyword Keyword Keyword Keyword Keyword Keyword Keyword Keyword Keyword Keyword Keyword Keyword
+order by 1 ) ( ) order by order by desc 1 order by desc limit
+Keyword Keyword Keyword Keyword Keyword Keyword Keyword Keyword Keyword Keyword Keyword Keyword Keyword Keyword Keyword Keyword Keyword
+Index:17
+one of top k was correct
+Actual:
+c3
+Predicted:
+c3
+Column Keyword
+c3 order
+Column Keyword Keyword
+c3 order by c1_number
+Column Keyword Keyword Column Keyword
+c3 order by c1_number 1
+Column Keyword Keyword Column Keyword Keyword
+c3 order by c1_number 1 by c3
+Column Keyword Keyword Column Keyword Keyword Column Keyword
+Index:18
+none of top k were correct
+Actual:
+id = 1
+Predicted:
+order limit
+Keyword Keyword Keyword
+order limit order by order by 1 limit 1
+Keyword Keyword Keyword Keyword Keyword Keyword Keyword Keyword Keyword Keyword
+order limit order by order by 1 limit 1 order by order by 1
+Keyword Keyword Keyword Keyword Keyword Keyword Keyword Keyword Keyword Keyword Keyword Keyword Keyword Keyword Keyword
+order limit order by order by 1 limit 1 order by order by 1 by order limit 1
+Keyword Keyword Keyword Keyword Keyword Keyword Keyword Keyword Keyword Keyword Keyword Keyword Keyword Keyword Keyword Keyword Keyword Keyword Keyword
+order limit order by order by 1 limit 1 order by order by 1 by order limit 1 order by c1_number limit 1
+Keyword Keyword Keyword Keyword Keyword Keyword Keyword Keyword Keyword Keyword Keyword Keyword Keyword Keyword Keyword Keyword Keyword Keyword Keyword Keyword Column Keyword Keyword Keyword
+Index:19
+none of top k were correct
+Actual:
+count ( distinct )
+Predicted:
+count (
+Keyword Keyword Keyword
+count ( count ) )
+Keyword Keyword Keyword Keyword Keyword Keyword
+count ( count ) ) (
+Keyword Keyword Keyword Keyword Keyword Keyword Keyword
+count ( count ) ) ( count ( )
+Keyword Keyword Keyword Keyword Keyword Keyword Keyword Keyword Keyword Keyword
+count ( count ) ) ( count ( ) count ( )
+Keyword Keyword Keyword Keyword Keyword Keyword Keyword Keyword Keyword Keyword Keyword Keyword Keyword
+Index:20
+none of top k were correct
+Actual:
+c1
+Predicted:
+c1_number
+Column Keyword
+c1_number order
+Column Keyword Keyword
+c1_number order by c1_number
+Column Keyword Keyword Column Keyword
+c1_number order by c1_number order by c1_number limit 1
+Column Keyword Keyword Column Keyword Keyword Column Keyword Keyword Keyword
+c1_number order by c1_number order by c1_number limit 1 order
+Column Keyword Keyword Column Keyword Keyword Column Keyword Keyword Keyword Keyword
+Index:21
+one of top k was correct
+Actual:
+c3
+Predicted:
+c3
+Column Keyword
+c3 order by c1_number
+Column Keyword Keyword Column Keyword
+c3 order by c1_number )
+Column Keyword Keyword Column Keyword Keyword
+c3 order by c1_number ) order by c5_number limit 1
+Column Keyword Keyword Column Keyword Keyword Keyword Column Keyword Keyword Keyword
+c3 order by c1_number ) order by c5_number limit 1 order
+Column Keyword Keyword Column Keyword Keyword Keyword Column Keyword Keyword Keyword Keyword
+Index:22
+none of top k were correct
+Actual:
+!=
+Predicted:
+> 1
+Keyword Keyword Keyword
+> 1 order by c5_number
+Keyword Keyword Keyword Keyword Column Keyword
+> 1 order by c5_number order limit 1
+Keyword Keyword Keyword Keyword Column Keyword Keyword Keyword Keyword
+> 1 order by c5_number order limit 1 order by c5_number
+Keyword Keyword Keyword Keyword Column Keyword Keyword Keyword Keyword Keyword Column Keyword
+> 1 order by c5_number order limit 1 order by c5_number limit
+Keyword Keyword Keyword Keyword Column Keyword Keyword Keyword Keyword Keyword Column Keyword Keyword
+Index:23
+none of top k were correct
+Actual:
+!=
+Predicted:
+> 1
+Keyword Keyword Keyword
+> 1 order by c5_number
+Keyword Keyword Keyword Keyword Column Keyword
+> 1 order by c5_number order limit 1
+Keyword Keyword Keyword Keyword Column Keyword Keyword Keyword Keyword
+> 1 order by c5_number order limit 1 order by c5_number
+Keyword Keyword Keyword Keyword Column Keyword Keyword Keyword Keyword Keyword Column Keyword
+> 1 order by c5_number order limit 1 order by c5_number limit
+Keyword Keyword Keyword Keyword Column Keyword Keyword Keyword Keyword Keyword Column Keyword Keyword
+Index:24
+one of top k was correct
+Actual:
+2005
+Predicted:
+2005
+Literal.Number Keyword
+2005 )
+Literal.Number Keyword Keyword
+2005 ) ( c5_number
+Literal.Number Keyword Keyword Column Keyword
+2005 ) ( c5_number order by c5_number
+Literal.Number Keyword Keyword Column Keyword Keyword Column Keyword
+2005 ) ( c5_number order by c5_number limit
+Literal.Number Keyword Keyword Column Keyword Keyword Column Keyword Keyword
+Index:25
+one of top k was correct
+Actual:
+2009
+Predicted:
+2009
+Literal.Number Keyword
+2009 = )
+Literal.Number Keyword Keyword Keyword
+2009 = ) by c5_number
+Literal.Number Keyword Keyword Keyword Column Keyword
+2009 = ) by c5_number 1
+Literal.Number Keyword Keyword Keyword Column Keyword Keyword
+2009 = ) by c5_number 1 order by c5_number limit
+Literal.Number Keyword Keyword Keyword Column Keyword Keyword Keyword Column Keyword Keyword
+Index:26
+one of top k was correct
+Actual:
+c5_number
+Predicted:
+c5_number
+Column Keyword
+c5_number 1 )
+Column Keyword Keyword Keyword
+c5_number 1 ) order by c5_number
+Column Keyword Keyword Keyword Keyword Column Keyword
+c5_number 1 ) order by c5_number order by c5_number limit 1
+Column Keyword Keyword Keyword Keyword Column Keyword Keyword Column Keyword Keyword Keyword
+c5_number 1 ) order by c5_number order by c5_number limit 1 order by c5_number limit
+Column Keyword Keyword Keyword Keyword Column Keyword Keyword Column Keyword Keyword Keyword Keyword Column Keyword Keyword
+Index:27
+one of top k was correct
+Actual:
+c5_number
+Predicted:
+c5_number
+Column Keyword
+c5_number 1 )
+Column Keyword Keyword Keyword
+c5_number 1 ) order by c5_number
+Column Keyword Keyword Keyword Keyword Column Keyword
+c5_number 1 ) order by c5_number order by c5_number limit 1
+Column Keyword Keyword Keyword Keyword Column Keyword Keyword Column Keyword Keyword Keyword
+c5_number 1 ) order by c5_number order by c5_number limit 1 order by c5_number limit
+Column Keyword Keyword Keyword Keyword Column Keyword Keyword Column Keyword Keyword Keyword Keyword Column Keyword Keyword
+Index:28
+none of top k were correct
+Actual:
+and
+Predicted:
+> )
+Keyword Keyword Keyword
+> ) order limit
+Keyword Keyword Keyword Keyword Keyword
+> ) order limit order by
+Keyword Keyword Keyword Keyword Keyword Keyword Keyword
+> ) order limit order by c5_number
+Keyword Keyword Keyword Keyword Keyword Keyword Column Keyword
+> ) order limit order by c5_number order by desc limit 1
+Keyword Keyword Keyword Keyword Keyword Keyword Column Keyword Keyword Keyword Keyword Keyword Keyword
+Index:29
+one of top k was correct
+Actual:
+'antonio horvath kiss'
+Predicted:
+'antonio horvath kiss'
+Literal.String Keyword
+'antonio horvath kiss' order by c5_number
+Literal.String Keyword Keyword Column Keyword
+'antonio horvath kiss' order by c5_number limit
+Literal.String Keyword Keyword Column Keyword Keyword
+'antonio horvath kiss' order by c5_number limit 1
+Literal.String Keyword Keyword Column Keyword Keyword Keyword
+'antonio horvath kiss' order by c5_number limit 1 order by c5_number limit
+Literal.String Keyword Keyword Column Keyword Keyword Keyword Keyword Column Keyword Keyword
+Index:30
+one of top k was correct
+Actual:
+c5_number
+Predicted:
+c5_number
+Column Keyword
+c5_number ( c5_number
+Column Keyword Column Keyword
+c5_number ( c5_number ( c5_number
+Column Keyword Column Keyword Column Keyword
+c5_number ( c5_number ( c5_number by c5_number limit 1
+Column Keyword Column Keyword Column Keyword Column Keyword Keyword Keyword
+c5_number ( c5_number ( c5_number by c5_number limit 1 order by c5_number limit 1
+Column Keyword Column Keyword Column Keyword Column Keyword Keyword Keyword Keyword Column Keyword Keyword Keyword
+Index:31
+none of top k were correct
+Actual:
+c5_number
+Predicted:
+c1
+Column Keyword
+c1 ( c5_number limit
+Column Keyword Column Keyword Keyword
+c1 ( c5_number limit order by c5_number
+Column Keyword Column Keyword Keyword Keyword Column Keyword
+c1 ( c5_number limit order by c5_number order by c5_number
+Column Keyword Column Keyword Keyword Keyword Column Keyword Keyword Column Keyword
+c1 ( c5_number limit order by c5_number order by c5_number limit
+Column Keyword Column Keyword Keyword Keyword Column Keyword Keyword Column Keyword Keyword
+Index:32
+none of top k were correct
+Actual:
+id ( = id ) + 1
+Predicted:
+> (
+Keyword Keyword Keyword
+> ( ) limit
+Keyword Keyword Keyword Keyword Keyword
+> ( ) limit order by order by
+Keyword Keyword Keyword Keyword Keyword Keyword Keyword Keyword Keyword
+> ( ) limit order by order by order by c2_minimum_year limit 1
+Keyword Keyword Keyword Keyword Keyword Keyword Keyword Keyword Keyword Keyword Column Keyword Keyword Keyword
+> ( ) limit order by order by order by c2_minimum_year limit 1 order by c2_minimum_year limit 1
+Keyword Keyword Keyword Keyword Keyword Keyword Keyword Keyword Keyword Keyword Column Keyword Keyword Keyword Keyword Column Keyword Keyword Keyword
+Index:33
+one of top k was correct
+Actual:
+c1
+Predicted:
+c1
+Column Keyword
+c1 ( c1
+Column Keyword Column Keyword
+c1 ( c1 limit
+Column Keyword Column Keyword Keyword
+c1 ( c1 limit order by c1
+Column Keyword Column Keyword Keyword Keyword Column Keyword
+c1 ( c1 limit order by c1 limit
+Column Keyword Column Keyword Keyword Keyword Column Keyword Keyword
+Index:34
+one of top k was correct
+Actual:
+c1
+Predicted:
+c1
+Column Keyword
+c1 ( c1
+Column Keyword Column Keyword
+c1 ( c1 limit
+Column Keyword Column Keyword Keyword
+c1 ( c1 limit order by c1
+Column Keyword Column Keyword Keyword Keyword Column Keyword
+c1 ( c1 limit order by c1 limit
+Column Keyword Column Keyword Keyword Keyword Column Keyword Keyword
+Index:35
+one of top k was correct
+Actual:
+'late-may 1965 tornado outbreak'
+Predicted:
+'late-may 1965 tornado outbreak'
+Literal.String Keyword
+'late-may 1965 tornado outbreak' =
+Literal.String Keyword Keyword
+'late-may 1965 tornado outbreak' = by )
+Literal.String Keyword Keyword Keyword Keyword
+'late-may 1965 tornado outbreak' = by ) order by c4_number
+Literal.String Keyword Keyword Keyword Keyword Keyword Column Keyword
+'late-may 1965 tornado outbreak' = by ) order by c4_number limit
+Literal.String Keyword Keyword Keyword Keyword Keyword Column Keyword Keyword
+Index:36
+none of top k were correct
+Actual:
+c2_minimum_year
+Predicted:
+c2_maximum_year
+Column Keyword
+c2_maximum_year ( c2_minimum_year
+Column Keyword Column Keyword
+c2_maximum_year ( c2_minimum_year order by c1
+Column Keyword Column Keyword Keyword Column Keyword
+c2_maximum_year ( c2_minimum_year order by c1 order by c2_minimum_year limit
+Column Keyword Column Keyword Keyword Column Keyword Keyword Column Keyword Keyword
+c2_maximum_year ( c2_minimum_year order by c1 order by c2_minimum_year limit 1
+Column Keyword Column Keyword Keyword Column Keyword Keyword Column Keyword Keyword Keyword
+Index:37
+one of top k was correct
+Actual:
+1965
+Predicted:
+1965
+Literal.Number Keyword
+1965 by c1
+Literal.Number Keyword Column Keyword
+1965 by c1 by c1 limit
+Literal.Number Keyword Column Keyword Column Keyword Keyword
+1965 by c1 by c1 limit order by c1
+Literal.Number Keyword Column Keyword Column Keyword Keyword Keyword Column Keyword
+1965 by c1 by c1 limit order by c1 limit
+Literal.Number Keyword Column Keyword Column Keyword Keyword Keyword Column Keyword Keyword
+Index:38
+none of top k were correct
+Actual:
+count ( * )
+Predicted:
+count (
+Keyword Keyword Keyword
+count ( ( )
+Keyword Keyword Keyword Keyword Keyword
+count ( ( ) count )
+Keyword Keyword Keyword Keyword Keyword Keyword Keyword
+count ( ( ) count ) count ( )
+Keyword Keyword Keyword Keyword Keyword Keyword Keyword Keyword Keyword Keyword
+count ( ( ) count ) count ( ) count ( )
+Keyword Keyword Keyword Keyword Keyword Keyword Keyword Keyword Keyword Keyword Keyword Keyword Keyword
+Index:39
+none of top k were correct
+Actual:
+sum ( )
+Predicted:
+count (
+Keyword Keyword Keyword
+count ( ( )
+Keyword Keyword Keyword Keyword Keyword
+count ( ( ) count (
+Keyword Keyword Keyword Keyword Keyword Keyword Keyword
+count ( ( ) count ( )
+Keyword Keyword Keyword Keyword Keyword Keyword Keyword Keyword
+count ( ( ) count ( ) (
+Keyword Keyword Keyword Keyword Keyword Keyword Keyword Keyword Keyword
+Index:40
+one of top k was correct
+Actual:
+c4_number
+Predicted:
+c4_number
+Column Keyword
+c4_number order
+Column Keyword Keyword
+c4_number order by c1
+Column Keyword Keyword Column Keyword
+c4_number order by c1 1
+Column Keyword Keyword Column Keyword Keyword
+c4_number order by c1 1 order
+Column Keyword Keyword Column Keyword Keyword Keyword
+Index:41
+none of top k were correct
+Actual:
+c2_minimum_year
+Predicted:
+c1
+Column Keyword
+c1 ( c1
+Column Keyword Column Keyword
+c1 ( c1 order limit
+Column Keyword Column Keyword Keyword Keyword
+c1 ( c1 order limit 1
+Column Keyword Column Keyword Keyword Keyword Keyword
+c1 ( c1 order limit 1 order
+Column Keyword Column Keyword Keyword Keyword Keyword Keyword
+Index:42
+one of top k was correct
+Actual:
+1960
+Predicted:
+1960
+Literal.Number Keyword
+1960 by c1
+Literal.Number Keyword Column Keyword
+1960 by c1 by c1 limit
+Literal.Number Keyword Column Keyword Column Keyword Keyword
+1960 by c1 by c1 limit 1
+Literal.Number Keyword Column Keyword Column Keyword Keyword Keyword
+1960 by c1 by c1 limit 1 by c1
+Literal.Number Keyword Column Keyword Column Keyword Keyword Keyword Column Keyword
+Index:43
+one of top k was correct
+Actual:
+c4
+Predicted:
+c4
+Column Keyword
+c4 order by c1
+Column Keyword Keyword Column Keyword
+c4 order by c1 order by c1
+Column Keyword Keyword Column Keyword Keyword Column Keyword
+c4 order by c1 order by c1 limit
+Column Keyword Keyword Column Keyword Keyword Column Keyword Keyword
+c4 order by c1 order by c1 limit 1
+Column Keyword Keyword Column Keyword Keyword Column Keyword Keyword Keyword
+Index:44
+one of top k was correct
+Actual:
+'shoulder injury sustained from crash'
+Predicted:
+'shoulder injury sustained from crash'
+Literal.String Keyword
+'shoulder injury sustained from crash' order by c1
+Literal.String Keyword Keyword Column Keyword
+'shoulder injury sustained from crash' order by c1 order by c1
+Literal.String Keyword Keyword Column Keyword Keyword Column Keyword
+'shoulder injury sustained from crash' order by c1 order by c1 1
+Literal.String Keyword Keyword Column Keyword Keyword Column Keyword Keyword
+'shoulder injury sustained from crash' order by c1 order by c1 1 by c5
+Literal.String Keyword Keyword Column Keyword Keyword Column Keyword Keyword Column Keyword
+Index:45
+one of top k was correct
+Actual:
+c3
+Predicted:
+c3
+Column Keyword
+c3 order
+Column Keyword Keyword
+c3 order by c1
+Column Keyword Keyword Column Keyword
+c3 order by c1 1
+Column Keyword Keyword Column Keyword Keyword
+c3 order by c1 1 ( c1 c1 ) c3
+Column Keyword Keyword Column Keyword Keyword Column Column Keyword Column Keyword
+Index:46
+one of top k was correct
+Actual:
+c3
+Predicted:
+c3
+Column Keyword
+c3 order
+Column Keyword Keyword
+c3 order by c1
+Column Keyword Keyword Column Keyword
+c3 order by c1 1
+Column Keyword Keyword Column Keyword Keyword
+c3 order by c1 1 ( c1 c1 ) c3
+Column Keyword Keyword Column Keyword Keyword Column Column Keyword Column Keyword
+Index:47
+one of top k was correct
+Actual:
+'matteo bono'
+Predicted:
+'matteo bono'
+Literal.String Keyword
+'matteo bono' order by c1
+Literal.String Keyword Keyword Column Keyword
+'matteo bono' order by c1 c1
+Literal.String Keyword Keyword Column Column Keyword
+'matteo bono' order by c1 c1 limit 1
+Literal.String Keyword Keyword Column Column Keyword Keyword Keyword
+'matteo bono' order by c1 c1 limit 1 c1
+Literal.String Keyword Keyword Column Column Keyword Keyword Column Keyword
+Index:48
+none of top k were correct
+Actual:
+id = ( id ) + 1
+Predicted:
+id desc
+Keyword Keyword Keyword
+id desc 1
+Keyword Keyword Keyword Keyword
+id desc 1 c1 desc
+Keyword Keyword Keyword Column Keyword Keyword
+id desc 1 c1 desc 1
+Keyword Keyword Keyword Column Keyword Keyword Keyword
+id desc 1 c1 desc 1 order by c1 limit 1
+Keyword Keyword Keyword Column Keyword Keyword Keyword Keyword Column Keyword Keyword Keyword
+Index:49
+one of top k was correct
+Actual:
+'daniel martin'
+Predicted:
+'daniel martin'
+Literal.String Keyword
+'daniel martin' order by c5
+Literal.String Keyword Keyword Column Keyword
+'daniel martin' order by c5 order by c5
+Literal.String Keyword Keyword Column Keyword Keyword Column Keyword
+'daniel martin' order by c5 order by c5 limit
+Literal.String Keyword Keyword Column Keyword Keyword Column Keyword Keyword
+'daniel martin' order by c5 order by c5 limit order by c5 desc limit
+Literal.String Keyword Keyword Column Keyword Keyword Column Keyword Keyword Keyword Column Keyword Keyword Keyword

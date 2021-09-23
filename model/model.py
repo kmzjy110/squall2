@@ -1025,6 +1025,7 @@ class TableParser(nn.Module):
                                             current_query_types.append(ttype)
                                             all_query_types_this_loop.append(current_query_types)
 
+                            assert len(decoder_inputs)==len(querys) ==len(query_types)==len(query_scores) ==len(query_ends)
                             top_k_candidate_indices = torch.topk(torch.tensor(all_query_scores_this_loop), k=beamsearch_k, axis=-1).indices
                             decoder_inputs = [all_decoder_inputs_this_loop[index] for index in top_k_candidate_indices]
                             querys = [all_querys_this_loop[index] for index in top_k_candidate_indices]
