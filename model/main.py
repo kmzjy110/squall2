@@ -34,33 +34,81 @@ def load_words(dataset, cutoff=1):
     return _vocab
 
 
-def evaluate(data_loader, model, evaluator, gold_decode=False):
+def evaluate(data_loader, model, evaluator, gold_decode=False, beamsearch=True):
     lf_accu = 0
     all_accu = 0
     total = 0
     all_preds = list()
     log_probs = []
 
+    wrongs = []
+    rights = []
+    beamsearch_result_strings = []
     for idx, batch in enumerate(tqdm(data_loader)):
         model.eval()
-        prediction, _log_probs = model(batch, isTrain=False, gold_decode=gold_decode)
-        ex_acc = evaluator.evaluate(prediction)
-        log_probs.extend(_log_probs)
+        prediction, _log_probs = model(batch, isTrain=False, gold_decode=gold_decode, beamsearch=beamsearch)
+        if not beamsearch:
+            #ex_acc = evaluator.evaluate(prediction)
+            log_probs.extend(_log_probs)
         for d in prediction:
             total += 1
-            if d['result'][0]['sql'] == d['result'][0]['tgt']:
-                lf_accu += 1
-        if ex_acc == 1:
-            prediction[0]['correct'] = 1
-        else:
-            prediction[0]['correct'] = 0
-        all_preds.extend(prediction)
-        all_accu += ex_acc
+            if beamsearch:
+                correct_pred = False
+                for sql in d['result'][0]['sql']:
+                    if sql == d['result'][0]['tgt']:
+                        lf_accu += 1
+                        correct_pred = True
+                        break
+                if correct_pred:
+                    beamsearch_result_strings.append("one of top k was correct")
 
-    perplexity = 2 ** (-np.average(log_probs) / np.log(2.))
-    logger.info('logical form accurate: {}/{} = {}%'.format(lf_accu, total, lf_accu / total * 100))
-    logger.info('num of execution correct: {}/{} = {}%'.format(all_accu, total, all_accu / total * 100))
-    logger.info('perplexity: {}'.format(perplexity))
+                else:
+                    beamsearch_result_strings.append("none of top k were correct")
+                beamsearch_result_strings.append("Actual:")
+                beamsearch_result_strings.append(d['result'][0]['tgt'])
+                beamsearch_result_strings.append("Predicted:")
+                for sql in d['result'][0]['sql']:
+                    beamsearch_result_strings.append(sql)
+            else:
+                if d['result'][0]['sql'] == d['result'][0]['tgt']:
+                    lf_accu += 1
+                    rights.append(d['result'][0]['sql'])
+                else:
+                    wrongs.append((d['result'][0]['sql'], d['result'][0]['tgt']))
+        # if ex_acc == 1:
+        #     prediction[0]['correct'] = 1
+        # else:
+        #     prediction[0]['correct'] = 0
+        # all_accu += ex_acc
+        all_preds.extend(prediction)
+    if not beamsearch:
+        with open('wrongs.txt', 'w') as wrongs_f:
+            for wrong in wrongs:
+                wrongs_f.write("Predicted:\n")
+                wrongs_f.write(wrong[0])
+                wrongs_f.write('\n')
+                wrongs_f.write('Actual:\n')
+                wrongs_f.write(wrong[1])
+                wrongs_f.write('\n')
+        with open('rights.txt', 'w') as wrongs_f:
+            for right in rights:
+                wrongs_f.write(right)
+                wrongs_f.write('\n')
+    else:
+        with open('beamsearch_results.txt', 'w') as write_f:
+            for res in beamsearch_result_strings:
+                write_f.write(res)
+                write_f.write('\n')
+
+
+    # logger.info('num of execution correct: {}/{} = {}%'.format(all_accu, total, all_accu / total * 100))
+    if beamsearch:
+        logger.info('top k beam search logical form accurate: {}/{} = {}%'.format(lf_accu, total, lf_accu / total * 100))
+    else:
+        logger.info('logical form accurate: {}/{} = {}%'.format(lf_accu, total, lf_accu / total * 100))
+    if not beamsearch:
+        perplexity = 2 ** (-np.average(log_probs) / np.log(2.))
+        logger.info('perplexity: {}'.format(perplexity))
     if gold_decode:
         return -perplexity, all_preds
     else:
@@ -85,7 +133,7 @@ if __name__ == "__main__":
     parser.add_argument('--dropout', type=int, default=0.2)
 
     parser.add_argument('--resume', action='store_true', default=False)
-    parser.add_argument('--test', action='store_true', default=False)
+    parser.add_argument('--test', action='store_true', default=True)
     parser.add_argument('--save-model', type=str, default='../log/tb_rank.pt')
     parser.add_argument('--load-model', type=str, default='../log/tb_rank.pt')
     parser.add_argument('--log-file', type=str, default = '../log/log_file_rank.log')
@@ -143,7 +191,9 @@ if __name__ == "__main__":
     )
 
     if args.test:
-        test_exs = em_process(load_alignment_dataset(args.test_file))
+
+        test_exs = em_process(load_alignment_dataset(args.dev_file))
+        #test_exs = test_exs[:10]
         test_dataset = dataset.WikiTableDataset(test_exs, vocab)
         test_sampler = torch.utils.data.sampler.SequentialSampler(test_dataset)
         test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=1,

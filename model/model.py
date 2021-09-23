@@ -8,8 +8,9 @@ import math
 import numpy as np
 from utils import parse_number, get_cells, best_match, attention_matrix, attention_matrix_col
 from transformers import BertTokenizer, BertModel
+import copy
 
-if torch.cuda.is_available():
+if torch.cuda.is_available() and True:
     def from_numpy(ndarray):
         return torch.from_numpy(ndarray).pin_memory().cuda()
 else:
@@ -437,7 +438,7 @@ class TableParser(nn.Module):
         return wvecs_pre, cvecs_pre, wvecs, cvecs, loss
 
 
-    def forward(self, batch, isTrain=True, gold_decode=False):
+    def forward(self, batch, isTrain=True, gold_decode=False, beamsearch=False, beamsearch_k=5):
         if self.args.bert:
             wvecs_pre, cvecs_pre, wvecs, cvecs, loss = self._bert_features(batch, isTrain=isTrain)
         else:
@@ -548,208 +549,506 @@ class TableParser(nn.Module):
 
             return loss
         else:
-            logprobs = []
-            pred_data = list()
-            for i in range(len(batch['sqls'])):
-                query = []
-                types = []
-                ii = 0
-                json_file = "../tables/json/{}.json".format(instances[i]["tbl"])
-                with open(json_file, "r") as f:
-                    table = json.load(f)
 
-                cells = get_cells(table)
-                hidden = None
-                decoder_input = self._decoder_lookup(torch.tensor([0], device=self.device))
-                if self.args.gold_attn:
-                    att = attention_matrix(instances[i])
+            if not beamsearch:
+                logprobs = []
+                pred_data = list()
+                for i in range(len(batch['sqls'])):
+                    query = []
+                    types = []
+                    ii = 0
+                    json_file = "../tables/json/{}.json".format(instances[i]["tbl"])
+                    with open(json_file, "r") as f:
+                        table = json.load(f)
 
-                if gold_decode:
-                    gold_sql = batch['sqls'][i]
-
-
-                while True:
-                    if gold_decode:
-                        gold_ttype, gold_value, gold_span = gold_sql[ii]
-                    logprob = 0.
-                    ii += 1
-                    if ii> 100:
-                        break
-
-                    hvec, c_hidden = self._h_lstm(decoder_input.unsqueeze(1), hidden)
-                    hidden = c_hidden
-
-
-                    val = wvecs[i].unsqueeze(0)
-                    # if self.args.gold_attn:
-                    #     if ii - 1 < att.shape[0]:
-                    #         w_context = self.decode_w_attn(hvec, val, val, batch['word_mask'].to(self.device)[i], gold_attn=att[ii - 1])
-                    #     else:
-                    #         w_context = self.decode_w_attn(hvec, val, val, batch['word_mask'].to(self.device)[i], gold_attn=att[-1])
-                    # else:
-                    w_context = self.decode_w_attn(hvec, val, val, batch['word_mask'].to(self.device)[i])
-                    c_context, c_score = self.decode_c_attn(hvec, cvecs[i].unsqueeze(0), batch['col_mask'].to(self.device)[i].unsqueeze(0))
-                    w_score = self.decode_w_attn.attn.squeeze(0).squeeze(1)[0]
-
-
-
-                    hvec = torch.cat((hvec, w_context, c_context), -1)
-
-                    potential = F.log_softmax(self._type_final(hvec).squeeze(0), dim=1).squeeze(0).data.cpu().numpy()
-
-                    if not instances[i]["has_number"]:
-                        potential[self.vocab['type']["Literal.Number"]] = -np.inf
+                    cells = get_cells(table)
+                    hidden = None
+                    decoder_input = self._decoder_lookup(torch.tensor([0], device=self.device))
+                    if self.args.gold_attn:
+                        att = attention_matrix(instances[i])
 
                     if gold_decode:
-                        choice = self.vocab['type'][gold_ttype]
-                    else:
-                        choice = np.argmax(potential)
+                        gold_sql = batch['sqls'][i]
 
-                    ttype = list(self.vocab['type'].keys())[choice]
-                    types.append(ttype)
-                    logprob += potential[choice]
-
-                    if ttype == "Keyword":
-
-                        potential = F.log_softmax(self._keyword_final(hvec).squeeze(0), dim=1).squeeze(0).data.cpu().numpy()
+                    while True:
                         if gold_decode:
-                            iv = self.vocab['keyword'][gold_value]
-                        else:
-                            iv = np.argmax(potential)
-
-                        value = list(self.vocab['keyword'].keys())[iv]
-
-                        logprob += potential[iv]
-
-                        if value == "<EOS>":
-                            logprobs.append(logprob)
+                            gold_ttype, gold_value, gold_span = gold_sql[ii]
+                        logprob = 0.
+                        ii += 1
+                        if ii > 100:
                             break
 
-                        query.append(value)
+                        hvec, c_hidden = self._h_lstm(decoder_input.unsqueeze(1), hidden)
+                        hidden = c_hidden
 
-                        k_value = torch.tensor([self.vocab['keyword'][value]], device=self.device)
-                        ivec = self._keyword_lookup(k_value)
+                        val = wvecs[i].unsqueeze(0)
+                        if self.args.gold_attn:
+                            if ii - 1 < att.shape[0]:
+                                w_context = self.decode_w_attn(hvec, val, val, batch['word_mask'].to(self.device)[i],
+                                                               gold_attn=att[ii - 1])
+                            else:
+                                w_context = self.decode_w_attn(hvec, val, val, batch['word_mask'].to(self.device)[i],
+                                                               gold_attn=att[-1])
+                        else:
+                            w_context = self.decode_w_attn(hvec, val, val, batch['word_mask'].to(self.device)[i])
+                        c_context, c_score = self.decode_c_attn(hvec, cvecs[i].unsqueeze(0),
+                                                                batch['col_mask'].to(self.device)[i].unsqueeze(0))
+                        w_score = self.decode_w_attn.attn.squeeze(0).squeeze(1)[0]
 
-                    elif ttype == "Column":
+                        hvec = torch.cat((hvec, w_context, c_context), -1)
 
-                        potential = F.log_softmax(self._column_biaffine(hvec, cvecs[i].unsqueeze(0), batch['col_mask'].to(self.device)[i].unsqueeze(0), is_score=True).squeeze(0), dim=1).squeeze(0).data.cpu().numpy()
+                        potential = F.log_softmax(self._type_final(hvec).squeeze(0), dim=1).squeeze(
+                            0).data.cpu().numpy()
+
+                        if not instances[i]["has_number"]:
+                            potential[self.vocab['type']["Literal.Number"]] = -np.inf
+
                         if gold_decode:
-                            col = int(gold_value.split("_")[0][1:]) - 1
+                            choice = self.vocab['type'][gold_ttype]
                         else:
-                            col = np.argmax(potential)
+                            choice = np.argmax(potential)
 
-                        logprob += potential[col]
+                        ttype = list(self.vocab['type'].keys())[choice]
+                        types.append(ttype)
+                        logprob += potential[choice]
 
-                        columnt_candidates = instances[i]['columns'][col][2] + [""]
+                        if ttype == "Keyword":
 
-                        if len(columnt_candidates) > 1:
-                            potential = self._columnt_final(hvec).squeeze(0)
-                            mask = np.zeros((len(self.vocab['columnt']), ))
-                            cand_set = set()
-                            for t in columnt_candidates:
-                                if t in self.vocab['columnt']:
-                                    cand_set.add(self.vocab['columnt'][t])
-                            for j in range(len(self.vocab['columnt'])):
-                                if j not in cand_set:
-                                    mask[j] = -1000.
-                            potential = potential + torch.tensor(mask, device=self.device).float()
-                            potential = F.log_softmax(potential, dim=1).squeeze(0).data.cpu().numpy()
-
+                            potential = F.log_softmax(self._keyword_final(hvec).squeeze(0), dim=1).squeeze(
+                                0).data.cpu().numpy()
                             if gold_decode:
-                                s = gold_value.split("_")
-                                gold_columnt = "_".join(s[1:])
-                                if len(s) > 1:
-                                    if gold_columnt in self.vocab['columnt']:
-                                        choice = self.vocab['columnt'][gold_columnt]
+                                iv = self.vocab['keyword'][gold_value]
+                            else:
+                                iv = np.argmax(potential)
+
+                            value = list(self.vocab['keyword'].keys())[iv]
+
+                            logprob += potential[iv]
+
+                            if value == "<EOS>":
+                                logprobs.append(logprob)
+                                break
+
+                            query.append(value)
+
+                            k_value = torch.tensor([self.vocab['keyword'][value]], device=self.device)
+                            ivec = self._keyword_lookup(k_value)
+
+                        elif ttype == "Column":
+
+                            potential = F.log_softmax(self._column_biaffine(hvec, cvecs[i].unsqueeze(0),
+                                                                            batch['col_mask'].to(self.device)[
+                                                                                i].unsqueeze(0), is_score=True).squeeze(
+                                0), dim=1).squeeze(0).data.cpu().numpy()
+                            if gold_decode:
+                                col = int(gold_value.split("_")[0][1:]) - 1
+                            else:
+                                col = np.argmax(potential)
+
+                            logprob += potential[col]
+
+                            columnt_candidates = instances[i]['columns'][col][2] + [""]
+
+                            if len(columnt_candidates) > 1:
+                                potential = self._columnt_final(hvec).squeeze(0)
+                                mask = np.zeros((len(self.vocab['columnt']),))
+                                cand_set = set()
+                                for t in columnt_candidates:
+                                    if t in self.vocab['columnt']:
+                                        cand_set.add(self.vocab['columnt'][t])
+                                for j in range(len(self.vocab['columnt'])):
+                                    if j not in cand_set:
+                                        mask[j] = -1000.
+                                potential = potential + torch.tensor(mask, device=self.device).float()
+                                potential = F.log_softmax(potential, dim=1).squeeze(0).data.cpu().numpy()
+
+                                if gold_decode:
+                                    s = gold_value.split("_")
+                                    gold_columnt = "_".join(s[1:])
+                                    if len(s) > 1:
+                                        if gold_columnt in self.vocab['columnt']:
+                                            choice = self.vocab['columnt'][gold_columnt]
+                                            logprob += potential[choice]
+                                    else:
+                                        choice = self.vocab['columnt'][""]
                                         logprob += potential[choice]
+                                    columnt = gold_columnt
                                 else:
-                                    choice = self.vocab['columnt'][""]
+                                    choice = np.argmax(potential)
+                                    columnt = list(self.vocab['columnt'].keys())[choice]
                                     logprob += potential[choice]
-                                columnt = gold_columnt
                             else:
-                                choice = np.argmax(potential)
-                                columnt = list(self.vocab['columnt'].keys())[choice]
-                                logprob += potential[choice]
+                                columnt = ""
+
+                            if columnt != "":
+                                query.append("c{}_{}".format(col + 1, columnt))
+                            else:
+                                query.append("c{}".format(col + 1))
+
+                            ivec = self._column2i(cvecs[i][col]).unsqueeze(0)
+
                         else:
-                            columnt = ""
 
+                            if ttype == "Literal.String":
+                                potential = F.log_softmax(self._valbeg_biaffine(hvec, wvecs[i].unsqueeze(0),
+                                                                                batch['word_mask'].to(self.device)[
+                                                                                    i].unsqueeze(0),
+                                                                                is_score=True).squeeze(0),
+                                                          dim=1).squeeze(0).data.cpu().numpy()
+                                if gold_decode:
+                                    span_beg = gold_span[0]
+                                else:
+                                    span_beg = np.argmax(potential)
+                                logprob += potential[span_beg]
 
-                        if columnt != "":
-                            query.append("c{}_{}".format(col + 1, columnt))
-                        else:
-                            query.append("c{}".format(col + 1))
+                                potential = F.log_softmax(self._valend_biaffine(hvec, wvecs[i].unsqueeze(0),
+                                                                                batch['word_mask'].to(self.device)[
+                                                                                    i].unsqueeze(0),
+                                                                                is_score=True).squeeze(0),
+                                                          dim=1).squeeze(0).data.cpu().numpy()
+                                if gold_decode:
+                                    span_end = gold_span[1]
+                                else:
+                                    span_end = np.argmax(potential[span_beg:]) + span_beg
+                                logprob += potential[span_end]
 
-                        ivec = self._column2i(cvecs[i][col]).unsqueeze(0)
+                                if len(query) >= 2 and query[-1] == "=" and types[-3] == "Column":
+                                    col, literal = best_match(cells,
+                                                              " ".join(instances[i]["nl"][span_beg:span_end + 1]),
+                                                              query[-2])
+                                else:
+                                    col, literal = best_match(cells,
+                                                              " ".join(instances[i]["nl"][span_beg:span_end + 1]))
 
-                    else:
+                                query.append("{}".format(repr(literal)))
 
-                        if ttype == "Literal.String":
-                            potential = F.log_softmax(self._valbeg_biaffine(hvec, wvecs[i].unsqueeze(0), batch['word_mask'].to(self.device)[i].unsqueeze(0), is_score=True).squeeze(0), dim=1).squeeze(0).data.cpu().numpy()
-                            if gold_decode:
-                                span_beg = gold_span[0]
+                                # postprocessing, fix the col = val mismatch
+                                if len(query) >= 3 and query[-2] == "=" and types[-3] == "Column":
+                                    query[-3] = col
+
+                                if len(query) >= 4 and query[-2] == "(" and query[-3] == "in" and types[-4] == "Column":
+                                    query[-4] = col
                             else:
-                                span_beg = np.argmax(potential)
-                            logprob += potential[span_beg]
+                                potential = F.log_softmax(self._valbeg_biaffine(hvec, wvecs[i].unsqueeze(0),
+                                                                                batch['word_mask'].to(self.device)[
+                                                                                    i].unsqueeze(0),
+                                                                                is_score=True).squeeze(0),
+                                                          dim=1).squeeze(0).data.cpu().numpy()
+                                for j, n in enumerate(instances[i]["numbers"]):
+                                    if n is None:
+                                        potential[j] = -np.inf
 
-                            potential = F.log_softmax(self._valend_biaffine(hvec, wvecs[i].unsqueeze(0), batch['word_mask'].to(self.device)[i].unsqueeze(0), is_score=True).squeeze(0), dim=1).squeeze(0).data.cpu().numpy()
-                            if gold_decode:
-                                span_end = gold_span[1]
-                            else:
-                                span_end = np.argmax(potential[span_beg:]) + span_beg
-                            logprob += potential[span_end]
+                                if gold_decode:
+                                    span_beg = gold_span[0]
+                                else:
+                                    span_beg = np.argmax(potential)
+                                logprob += potential[span_beg]
+                                span_end = span_beg
+                                query.append("{}".format(parse_number(instances[i]["nl"][span_beg])))
+                            ivec = self._val2i(
+                                torch.cat((wvecs[i][span_beg].unsqueeze(0), wvecs[i][span_end].unsqueeze(0)), 1))
 
-                            if len(query) >= 2 and query[-1] == "=" and types[-3] == "Column":
-                                col, literal = best_match(cells, " ".join(instances[i]["nl"][span_beg:span_end+1]), query[-2])
-                            else:
-                                col, literal = best_match(cells, " ".join(instances[i]["nl"][span_beg:span_end+1]))
+                        decoder_input = ivec
+                        logprobs.append(logprob)
 
-                            query.append("{}".format(repr(literal)))
+                    _query = query
+                    types = " ".join(types)
+                    query = ' '.join(query)
+
+                    pred_data.append({
+                        'table_id': instances[i]["tbl"],
+                        'result': [
+                            {
+                                'sql': query,
+                                'sql_type': types,
+                                'id': instances[i]["nt"],
+                                'tgt': " ".join([x[1] for x in instances[i].get("sql", [])]),
+                                'nl': ' '.join(instances[i]['nl'])
+                            }
+                        ]
+                    })
+
+                return pred_data, logprobs
+            else:
+                pred_data = list()
+
+                for i in range(len(batch['sqls'])):
+                    ii = 0
+                    json_file = "../tables/json/{}.json".format(instances[i]["tbl"])
+                    with open(json_file, "r") as f:
+                        table = json.load(f)
+
+                    cells = get_cells(table)
+                    hidden = None
 
 
-                            # postprocessing, fix the col = val mismatch
-                            if len(query) >= 3 and query[-2] == "=" and types[-3] == "Column":
-                                query[-3] = col
-
-                            if len(query) >= 4 and query[-2] == "(" and query[-3] == "in" and types[-4] == "Column":
-                                query[-4] = col
-                        else:
-                            potential = F.log_softmax(self._valbeg_biaffine(hvec, wvecs[i].unsqueeze(0), batch['word_mask'].to(self.device)[i].unsqueeze(0), is_score=True).squeeze(0), dim=1).squeeze(0).data.cpu().numpy()
-                            for j, n in enumerate(instances[i]["numbers"]):
-                                if n is None:
-                                    potential[j] = -np.inf
-
-                            if gold_decode:
-                                span_beg = gold_span[0]
-                            else:
-                                span_beg = np.argmax(potential)
-                            logprob += potential[span_beg]
-                            span_end = span_beg
-                            query.append("{}".format(parse_number(instances[i]["nl"][span_beg])))
-                        ivec = self._val2i(torch.cat((wvecs[i][span_beg].unsqueeze(0), wvecs[i][span_end].unsqueeze(0)), 1))
-
-                    decoder_input = ivec
-                    logprobs.append(logprob)
+                    decoder_inputs=[self._decoder_lookup(torch.tensor([0], device = self.device)) for i in range(beamsearch_k)]
+                    query_scores = [0 for i in range(beamsearch_k)]
+                    query_types = [[] for i in range(beamsearch_k)]
+                    query_ends = [0 for i in range(beamsearch_k)]
+                    querys = [[] for i in range(beamsearch_k)]
+                    num_ttypes_for_beam_search=2
+                    while True:
 
 
+                        ii += 1
+                        if ii > 100:
+                            break
+                        if sum(query_ends)==beamsearch_k:
+                            break
 
-                _query = query
-                types = " ".join(types)
-                query = ' '.join(query)
 
-                pred_data.append({
-                'table_id': instances[i]["tbl"],
-                'result': [
-                        {
-                        'sql': query,
-                        'sql_type': types,
-                        'id': instances[i]["nt"],
-                        'tgt': " ".join([x[1] for x in instances[i].get("sql", [])]),
-                        'nl': ' '.join(instances[i]['nl'])
-                        }
-                    ]
-                })
+                        all_decoder_inputs_this_loop  =[]
+                        all_querys_this_loop = []
+                        all_query_scores_this_loop = []
+                        all_query_types_this_loop = []
+                        all_query_ends_this_loop = []
+                        for hyp_num in range(beamsearch_k):
+                            if query_ends[hyp_num]:
+                                all_decoder_inputs_this_loop.append(None)
+                                all_querys_this_loop.append(querys[hyp_num])
+                                all_query_scores_this_loop.append(query_scores[hyp_num])
+                                all_query_types_this_loop.append(copy.deepcopy(query_types[hyp_num]))
+                                all_query_ends_this_loop.append(query_ends[hyp_num])
 
-            return pred_data, logprobs
+
+                                continue
+                            logprob = query_scores[hyp_num]
+                            decoder_input = decoder_inputs[hyp_num]
+                            hvec, c_hidden = self._h_lstm(decoder_input.unsqueeze(1), hidden)
+                            hidden = c_hidden
+
+                            val = wvecs[i].unsqueeze(0)
+                            w_context = self.decode_w_attn(hvec, val, val, batch['word_mask'].to(self.device)[i])
+                            c_context, c_score = self.decode_c_attn(hvec, cvecs[i].unsqueeze(0),
+                                                                    batch['col_mask'].to(self.device)[i].unsqueeze(0))
+                            w_score = self.decode_w_attn.attn.squeeze(0).squeeze(1)[0]
+
+                            hvec = torch.cat((hvec, w_context, c_context), -1)
+
+                            potential = F.log_softmax(self._type_final(hvec).squeeze(0), dim=1).squeeze(
+                                0).data.cpu().numpy()
+
+                            if not instances[i]["has_number"]:
+                                potential[self.vocab['type']["Literal.Number"]] = -np.inf
+
+
+                            ttype_choices = torch.topk(torch.tensor(potential), k=num_ttypes_for_beam_search, axis=-1).indices
+                            for ttype_choice_index, ttype_choice in enumerate(ttype_choices):
+                                ttype = list(self.vocab['type'].keys())[ttype_choice]
+                                current_ttype_logprob = logprob
+                                current_ttype_logprob += potential[ttype_choice]
+
+                                if ttype == "Keyword":
+
+                                    potential = F.log_softmax(self._keyword_final(hvec).squeeze(0), dim=1).squeeze(
+                                        0).data.cpu().numpy()
+
+                                    ivs = torch.topk(torch.tensor(potential), k=beamsearch_k, axis=-1).indices
+                                    for iv in ivs:
+
+                                        value = list(self.vocab['keyword'].keys())[iv]
+                                        current_val_logprob = current_ttype_logprob
+                                        current_val_logprob += potential[iv]
+
+                                        current_ttypes = copy.deepcopy(query_types[hyp_num])
+                                        current_ttypes.append(ttype)
+                                        all_query_types_this_loop.append(current_ttypes)
+                                        all_query_scores_this_loop.append(current_val_logprob)
+
+                                        current_query = copy.deepcopy(querys[hyp_num])
+                                        if value == "<EOS>":
+                                            all_querys_this_loop.append(current_query)
+                                            all_query_ends_this_loop.append(1)
+                                            all_decoder_inputs_this_loop.append(None)
+                                            continue
+
+                                        current_query.append(value)
+                                        all_querys_this_loop.append(current_query)
+                                        all_query_ends_this_loop.append(0)
+
+                                        k_value = torch.tensor([self.vocab['keyword'][value]], device=self.device)
+                                        ivec = self._keyword_lookup(k_value)
+                                        all_decoder_inputs_this_loop.append(ivec)
+
+                                elif ttype == "Column":
+
+                                    potential = F.log_softmax(self._column_biaffine(hvec, cvecs[i].unsqueeze(0),
+                                                                                    batch['col_mask'].to(self.device)[
+                                                                                        i].unsqueeze(0), is_score=True).squeeze(
+                                        0), dim=1).squeeze(0).data.cpu().numpy()
+                                    cols = torch.topk(torch.tensor(potential), k=min(beamsearch_k, len(potential)), axis=-1).indices
+
+                                    for col in cols:
+
+                                        current_val_logprob = current_ttype_logprob
+                                        current_val_logprob += potential[col]
+
+                                        columnt_candidates = instances[i]['columns'][col][2] + [""]
+
+                                        if len(columnt_candidates) > 1:
+                                            potential = self._columnt_final(hvec).squeeze(0)
+                                            mask = np.zeros((len(self.vocab['columnt']),))
+                                            cand_set = set()
+                                            for t in columnt_candidates:
+                                                if t in self.vocab['columnt']:
+                                                    cand_set.add(self.vocab['columnt'][t])
+                                            for j in range(len(self.vocab['columnt'])):
+                                                if j not in cand_set:
+                                                    mask[j] = -1000.
+                                            potential = potential + torch.tensor(mask, device=self.device).float()
+                                            potential = F.log_softmax(potential, dim=1).squeeze(0).data.cpu().numpy()
+
+
+
+                                            choice = np.argmax(potential)
+                                            columnt = list(self.vocab['columnt'].keys())[choice]
+                                            current_val_logprob += potential[choice]
+                                        else:
+                                            columnt = ""
+
+                                        if columnt != "":
+                                            value = "c{}_{}".format(col + 1, columnt)
+                                        else:
+                                            value = "c{}".format(col + 1)
+
+                                        current_ttypes = copy.deepcopy(query_types[hyp_num])
+                                        current_ttypes.append(ttype)
+                                        all_query_types_this_loop.append(current_ttypes)
+                                        all_query_ends_this_loop.append(0)
+                                        current_query = copy.deepcopy(querys[hyp_num])
+                                        current_query.append(value)
+                                        all_querys_this_loop.append(current_query)
+                                        all_query_scores_this_loop.append(current_val_logprob)
+
+                                        ivec = self._column2i(cvecs[i][col]).unsqueeze(0)
+                                        all_decoder_inputs_this_loop.append(ivec)
+
+                                else:
+                                    if ttype == "Literal.String":
+
+                                        span_beg_potential = F.log_softmax(self._valbeg_biaffine(hvec, wvecs[i].unsqueeze(0),
+                                                                                        batch['word_mask'].to(self.device)[
+                                                                                            i].unsqueeze(0),
+                                                                                        is_score=True).squeeze(0),
+                                                                  dim=1).squeeze(0).data.cpu().numpy()
+
+
+                                        span_end_potential = F.log_softmax(self._valend_biaffine(hvec, wvecs[i].unsqueeze(0),
+                                                                                        batch['word_mask'].to(self.device)[
+                                                                                            i].unsqueeze(0),
+                                                                                        is_score=True).squeeze(0),
+                                                                  dim=1).squeeze(0).data.cpu().numpy()
+
+
+                                        span_begs = torch.topk(torch.tensor(span_beg_potential),
+                                                               k=min(beamsearch_k, len(span_beg_potential)), axis=-1).indices
+                                        span_beg_end_logprobs = []
+                                        span_beg_end_pairs = []
+                                        for span_beg in span_begs:
+                                            current_span_beg_logprob = current_ttype_logprob + span_beg_potential[span_beg]
+
+                                            span_ends = torch.topk(torch.tensor(span_end_potential[span_beg:]),
+                                                                   k=min(beamsearch_k, len(span_end_potential[span_beg:])), axis=-1).indices
+                                            for span_end in span_ends:
+                                                span_end = span_end + span_beg
+                                                span_end_logprobs = current_span_beg_logprob + span_end_potential[span_end]
+                                                span_beg_end_logprobs.append(span_end_logprobs)
+                                                span_beg_end_pairs.append((span_beg,span_end))
+                                        topk_span_beg_end_pairs_indices = torch.topk(torch.tensor(span_beg_end_logprobs),k=beamsearch_k, axis=-1).indices
+                                        topk_span_beg_end_pairs = [span_beg_end_pairs[i] for i in topk_span_beg_end_pairs_indices]
+                                        topk_span_beg_end_log_probs = [span_beg_end_logprobs[i] for i in topk_span_beg_end_pairs_indices]
+
+
+                                        for span_index, (span_beg, span_end) in enumerate(topk_span_beg_end_pairs):
+                                            current_query = copy.deepcopy(querys[hyp_num])
+                                            current_query_types = copy.deepcopy(query_types[hyp_num])
+                                            current_query_types.append(ttype)
+                                            if len(current_query) >= 2 and current_query[-1] == "=" and current_query_types[-3] == "Column":
+                                                col, literal = best_match(cells,
+                                                                          " ".join(instances[i]["nl"][span_beg:span_end + 1]),
+                                                                          current_query[-2])
+                                            else:
+                                                col, literal = best_match(cells,
+                                                                          " ".join(instances[i]["nl"][span_beg:span_end + 1]))
+
+                                            current_query.append("{}".format(repr(literal)))
+
+                                            # postprocessing, fix the col = val mismatch
+                                            if len(current_query) >= 3 and current_query[-2] == "=" \
+                                                    and current_query_types[-3] == "Column":
+                                                current_query[-3] = col
+
+                                            if len(current_query) >= 4 and current_query[-2] == "(" \
+                                                    and current_query[-3] == "in" and current_query_types[-4] == "Column":
+                                                current_query[-4] = col
+                                            all_query_scores_this_loop.append(topk_span_beg_end_log_probs[span_index])
+                                            all_querys_this_loop.append(current_query)
+                                            all_query_ends_this_loop.append(0)
+
+
+                                            all_query_types_this_loop.append(current_query_types)
+                                            ivec = self._val2i(
+                                                torch.cat(
+                                                    (wvecs[i][span_beg].unsqueeze(0), wvecs[i][span_end].unsqueeze(0)),
+                                                    1))
+                                            all_decoder_inputs_this_loop.append(ivec)
+                                    else:
+                                        potential = F.log_softmax(self._valbeg_biaffine(hvec, wvecs[i].unsqueeze(0),
+                                                                                        batch['word_mask'].to(self.device)[
+                                                                                            i].unsqueeze(0),
+                                                                                        is_score=True).squeeze(0),
+                                                                  dim=1).squeeze(0).data.cpu().numpy()
+                                        for j, n in enumerate(instances[i]["numbers"]):
+                                            if n is None:
+                                                potential[j] = -np.inf
+
+
+                                        span_begs = torch.topk(torch.tensor(potential),
+                                                               k=min(beamsearch_k, len(potential)), axis=-1).indices
+                                        for span_beg in span_begs:
+                                            current_val_logprob = current_ttype_logprob
+
+                                            current_val_logprob += potential[span_beg]
+                                            current_query = copy.deepcopy(querys[hyp_num])
+                                            span_end = span_beg
+                                            current_query.append("{}".format(parse_number(instances[i]["nl"][span_beg])))
+                                            ivec = self._val2i(
+                                                torch.cat(
+                                                    (wvecs[i][span_beg].unsqueeze(0), wvecs[i][span_end].unsqueeze(0)),
+                                                    1))
+                                            all_decoder_inputs_this_loop.append(ivec)
+                                            all_querys_this_loop.append(current_query)
+                                            all_query_scores_this_loop.append(current_val_logprob)
+                                            all_query_ends_this_loop.append(0)
+                                            current_query_types = copy.deepcopy(query_types[hyp_num])
+                                            current_query_types.append(ttype)
+                                            all_query_types_this_loop.append(current_query_types)
+
+                            top_k_candidate_indices = torch.topk(torch.tensor(all_query_scores_this_loop), k=beamsearch_k, axis=-1).indices
+                            decoder_inputs = [all_decoder_inputs_this_loop[index] for index in top_k_candidate_indices]
+                            querys = [all_querys_this_loop[index] for index in top_k_candidate_indices]
+                            query_types = [all_query_types_this_loop[index] for index in top_k_candidate_indices]
+                            query_scores = [all_query_scores_this_loop[index] for index in top_k_candidate_indices]
+                            query_ends = [all_query_ends_this_loop[index] for index in top_k_candidate_indices]
+
+                    topk_types = [" ".join(types) for types in query_types]
+                    topk_querys = [' '.join(query) for query in querys]
+
+                    pred_data.append({
+                        'table_id': instances[i]["tbl"],
+                        'result': [
+                            {
+                                'sql': topk_querys,
+                                'sql_type': topk_types,
+                                'id': instances[i]["nt"],
+                                'tgt': " ".join([x[1] for x in instances[i].get("sql", [])]),
+                                'nl': ' '.join(instances[i]['nl'])
+                            }
+                        ]
+                    })
+
+                return pred_data, query_scores
 
 
 class Encoder_rnn(nn.Module):
